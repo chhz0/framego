@@ -1,64 +1,37 @@
 package fgcli
 
-type CommandOpts struct {
-	usage string
-	name  string
-	short string
-	long  string
+var globalOpts = &CommandOpts{}
 
+type CommandOpts struct {
 	version string
 	help    string
 
-	cfgFile string
-	cfgDir  []string
+	enableConfig bool
+	cfgFile      string
 }
 
 type Option func(*CommandOpts)
 
-func WithName(name string) Option {
-	return func(o *CommandOpts) {
-		o.name = name
-	}
-}
-
-func WithUsage(usage string) Option {
-	return func(o *CommandOpts) {
-		o.usage = usage
-	}
-}
-
-func WithShort(short string) Option {
-	return func(o *CommandOpts) {
-		o.short = short
-	}
-}
-
-func WithLong(long string) Option {
-	return func(o *CommandOpts) {
-		o.long = long
-	}
-}
-
-func WithVersion(version string) Option {
+func SetVersion(version string) Option {
 	return func(o *CommandOpts) {
 		o.version = version
 	}
 }
 
-func WithHelp(help string) Option {
+func SetHelp(help string) Option {
 	return func(o *CommandOpts) {
 		o.help = help
 	}
 }
 
-func WithCfgFile(cfgFile string) Option {
+func EnableConfig(enableConfig bool) Option {
 	return func(o *CommandOpts) {
-		o.cfgFile = cfgFile
+		o.enableConfig = enableConfig
 	}
 }
 
-func WithCfgDir(cfgDir ...string) Option {
+func SetCfgFile(cfgFile string) Option {
 	return func(o *CommandOpts) {
-		o.cfgDir = cfgDir
+		o.cfgFile = cfgFile
 	}
 }

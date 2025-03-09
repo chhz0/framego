@@ -12,17 +12,20 @@ type Cli struct {
 	*rcommand
 }
 
-func NewCli(cmd Commander) (*Cli, error) {
+func NewCli(cmd Commander, opts ...Option) (*Cli, error) {
+	for _, opt := range opts {
+		opt(globalOpts)
+	}
 
-	r, err := buildCommands(cmd)
+	r, err := compile(cmd)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = r.applyOptions()
 	return &Cli{r}, nil
 }
 
-func buildCommands(rcmd Commander) (*rcommand, error) {
+func compile(rcmd Commander) (*rcommand, error) {
 	rbuilder := &commandBuilder{
 		commander: rcmd,
 	}

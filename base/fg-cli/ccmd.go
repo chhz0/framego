@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -38,8 +39,22 @@ type Commander interface {
 
 type rcommand struct {
 	rcobra *cobra.Command
+}
 
-	// opts *CommandOpts
+func (r *rcommand) applyOptions() error {
+	if globalOpts.help != "" {
+		r.rcobra.SetHelpTemplate(globalOpts.help)
+	}
+
+	if globalOpts.version != "" {
+		r.rcobra.SetVersionTemplate(globalOpts.version)
+	}
+
+	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
+		bindConfigFlag(r, globalOpts.cfgFile)
+		cobra.OnInitialize(useConfig(globalOpts.cfgFile))
+	}
+	return nil
 }
 
 type commandBuilder struct {
@@ -66,7 +81,9 @@ func (cb *commandBuilder) build() error {
 	}
 
 	applyFlags(cb.cobraCommand, cb.commander.Flags())
-
+	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
+		_ = bindViper(cb.cobraCommand)
+	}
 	for _, sub := range cb.commands {
 		if err := sub.build(); err != nil {
 			return err
@@ -130,6 +147,12 @@ func (c *SimpleCommand) PreRun(ctx context.Context, args []string) error {
 }
 
 func (c *SimpleCommand) Run(ctx context.Context, args []string) error {
+	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
+		// printConfig()
+		if err := viper.Unmarshal(c.Flager); err != nil {
+			return err
+		}
+	}
 	if c.RunFunc != nil {
 		return c.RunFunc(ctx, args)
 	}

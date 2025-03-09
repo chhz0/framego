@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	fgcli "github.com/chhz0/framego/base/fg-cli"
 	"github.com/spf13/pflag"
 )
@@ -15,7 +13,8 @@ type RootOption struct {
 // LocalFlags implements fgcli.Flager.
 func (r *RootOption) LocalFlags() *fgcli.FlagSet {
 	pfs := pflag.NewFlagSet("root", pflag.ExitOnError)
-	pfs.StringVarP(&r.Version, "version", "v", "v1.0.0", "app version")
+	pfs.StringVarP(&r.Version, "version", "v", "v0.0.1", "app version")
+	pfs.StringVarP(&r.AppName, "app", "a", "fg-cli", "app name")
 
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
@@ -26,24 +25,23 @@ func (r *RootOption) LocalFlags() *fgcli.FlagSet {
 // PersistentFlags implements fgcli.Flager.
 func (r *RootOption) PersistentFlags() *fgcli.FlagSet {
 	pfs := pflag.NewFlagSet("root", pflag.ExitOnError)
-	pfs.StringVarP(&r.AppName, "app-name", "a", "fg-cli", "app name")
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
-		Required: []string{"app-name"},
+		Required: []string{},
 	}
 }
 
 var _ fgcli.Flager = (*RootOption)(nil)
 
 type PrintOption struct {
-	print string `mapstructure:"print"`
-	from  string `mapstructure:"from"`
+	Print string `mapstructure:"print"`
+	From  string `mapstructure:"from"`
 }
 
 func (p *PrintOption) LocalFlags() *fgcli.FlagSet {
 	pfs := pflag.NewFlagSet("print", pflag.ExitOnError)
-	pfs.StringVarP(&p.print, "print", "p", "print", "print")
-	pfs.StringVarP(&p.from, "from", "f", "from", "from")
+	pfs.StringVarP(&p.Print, "print", "p", "print", "print")
+	pfs.StringVarP(&p.From, "from", "f", "from", "from")
 
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
@@ -60,7 +58,7 @@ func (p *PrintOption) PersistentFlags() *fgcli.FlagSet {
 
 type EchoOption struct {
 	Echo string      `mapstructure:"echo"`
-	Time TimesOption `mapstructure:"timeOption"`
+	Time TimesOption `mapstructure:"time"`
 }
 
 func (e *EchoOption) LocalFlags() *fgcli.FlagSet {
@@ -83,12 +81,12 @@ func (e *EchoOption) PersistentFlags() *fgcli.FlagSet {
 }
 
 type TimesOption struct {
-	Time time.Duration `mapstructure:"times"`
+	Time int `mapstructure:"times"`
 }
 
 func (t *TimesOption) LocalFlags() *fgcli.FlagSet {
 	pfs := pflag.NewFlagSet("times", pflag.ExitOnError)
-	pfs.DurationVarP(&t.Time, "times", "t", time.Second, "times")
+	pfs.IntVarP(&t.Time, "times", "t", 5, "times")
 
 	return &fgcli.FlagSet{
 		PFlags:   pfs,

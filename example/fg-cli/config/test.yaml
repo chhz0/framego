@@ -1,0 +1,11 @@
+app_name: fgcli-test
+version: v0.0.1
+
+print: print-test
+from: test.config
+
+echo: echo-test
+time:
+  times: 3
+
+times: 7
