@@ -5,6 +5,7 @@ go 1.23.6
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/fsnotify/fsnotify v1.8.0
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
