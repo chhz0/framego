@@ -1,11 +1,11 @@
 app_name: fgcli-test
-version: v0.0.1
+version: v9.9.9
 
 print: print-test
-from: test.config
+from: test.yaml
 
 echo: echo-test
 time:
-  times: 3
+  times: 9999
 
-times: 7
+times: 9999

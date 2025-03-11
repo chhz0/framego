@@ -1,2 +1,11 @@
 app_name: fgcli-config
 version: v0.0.2
+
+print: print-config
+from: config.yaml
+
+echo: echo-config
+time:
+  times: 3
+
+times: 7

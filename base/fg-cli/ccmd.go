@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -50,9 +49,10 @@ func (r *rcommand) applyOptions() error {
 		r.rcobra.SetVersionTemplate(globalOpts.version)
 	}
 
-	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
-		bindConfigFlag(r, globalOpts.cfgFile)
-		cobra.OnInitialize(useConfig(globalOpts.cfgFile))
+	if globalOpts.enableConfig || globalOpts.configFile != "" {
+		bindConfigFlag(r, globalOpts.configFile)
+		cobra.OnInitialize(setConfig())
+		cobra.OnInitialize(readInConfig())
 	}
 	return nil
 }
@@ -81,9 +81,11 @@ func (cb *commandBuilder) build() error {
 	}
 
 	applyFlags(cb.cobraCommand, cb.commander.Flags())
-	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
+
+	if globalOpts.enableConfig || globalOpts.configFile != "" {
 		_ = bindViper(cb.cobraCommand)
 	}
+
 	for _, sub := range cb.commands {
 		if err := sub.build(); err != nil {
 			return err
@@ -92,6 +94,13 @@ func (cb *commandBuilder) build() error {
 	}
 
 	return nil
+}
+
+func bindConfigFlag(r *rcommand, file string) {
+	r.rcobra.Flags().StringVarP(&file, "config", "c", file, "config file")
+	_ = vc.v.BindPFlag("config", r.rcobra.Flags().Lookup("config"))
+	// // r.rcobra.Flags().StringArrayVarP(&dirs, "configDir", "", dirs, "config dir")
+	// // _ = viper.BindPFlag("configDir", r.rcobra.Flags().Lookup("configDir"))
 }
 
 func nameOrUsage(cmd Commander) string {
@@ -114,6 +123,7 @@ type SimpleCommand struct {
 	CmdName  string
 	CmdShort string
 	CmdLong  string
+	Args     *cobra.PositionalArgs
 
 	PreRunFunc func(ctx context.Context, args []string) error
 	RunFunc    func(ctx context.Context, args []string) error
@@ -147,9 +157,9 @@ func (c *SimpleCommand) PreRun(ctx context.Context, args []string) error {
 }
 
 func (c *SimpleCommand) Run(ctx context.Context, args []string) error {
-	if globalOpts.enableConfig || globalOpts.cfgFile != "" {
-		// printConfig()
-		if err := viper.Unmarshal(c.Flager); err != nil {
+	if globalOpts.enableConfig || globalOpts.configFile != "" {
+		printConfig()
+		if err := vc.v.Unmarshal(c.Flager); err != nil {
 			return err
 		}
 	}

@@ -6,8 +6,8 @@ import (
 )
 
 type Flager interface {
-	PersistentFlags() *FlagSet
-	LocalFlags() *FlagSet
+	PersistentFlags(fs *pflag.FlagSet) *FlagSet
+	LocalFlags(fs *pflag.FlagSet) *FlagSet
 }
 
 type FlagSet struct {
@@ -20,8 +20,8 @@ func applyFlags(cmd *cobra.Command, flager Flager) {
 		return
 	}
 
-	applyLocal(cmd, flager.LocalFlags())
-	applyPeristent(cmd, flager.PersistentFlags())
+	applyLocal(cmd, flager.LocalFlags(cmd.Flags()))
+	applyPeristent(cmd, flager.PersistentFlags(cmd.PersistentFlags()))
 }
 
 func applyLocal(cmd *cobra.Command, fs *FlagSet) {

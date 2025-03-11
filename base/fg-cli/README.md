@@ -14,8 +14,8 @@ fg-cli 是一个用以快速构建命令行应用程序的包，在设计上主�
 
 ## Optimization
 
-1. flag绑定
-2. 支持配置文件解析
+1. flag绑定, 验证
+2. 支持多种配置文件
 3. options 使用
 
 ## Inspiration

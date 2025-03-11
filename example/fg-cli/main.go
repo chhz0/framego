@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	fgcli "github.com/chhz0/framego/base/fg-cli"
+	fgconfig "github.com/chhz0/framego/base/fg-config"
 )
 
 func newPrintCmd() *fgcli.SimpleCommand {
@@ -59,7 +60,19 @@ a count and a string.`,
 	}
 }
 
+func testfgConfig() *fgconfig.VConfig {
+	vc := fgconfig.NewWith(
+		fgconfig.WithConfig(&fgconfig.LocalConfig{
+			ConfigName:  "test",
+			ConfigType:  "yaml",
+			ConfigPaths: []string{"./config"},
+		}),
+	)
+	return vc
+}
+
 func main() {
+	v := testfgConfig()
 	opt := &RootOption{}
 	cli, err := fgcli.NewCli(&fgcli.SimpleCommand{
 		CmdName:  "fgcli",
@@ -80,14 +93,18 @@ func main() {
 			newEchoCmd(),
 		},
 	},
-		fgcli.EnableConfig(true),
-		fgcli.SetCfgFile("./config/test.yaml"),
+		// --- use fgcli config
+		// fgcli.EnableConfig(nil),
+		// fgcli.SetCfgFile("./config/confg.yaml"),
+		// --- test fgconfig
+		fgcli.EnableConfig(v.V()),
+		fgcli.SetConfigHandler(v.Load),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := cli.Execute(context.Background(), []string{}); err != nil {
+	if err := cli.Execute(context.Background()); err != nil {
 		panic(err)
 	}
 }

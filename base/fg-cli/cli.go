@@ -5,14 +5,18 @@ import (
 )
 
 type CliExector interface {
-	Execute(ctx context.Context, args []string) error
+	Execute(ctx context.Context) error
 }
 
 type Cli struct {
 	*rcommand
 }
 
-func NewCli(cmd Commander, opts ...Option) (*Cli, error) {
+func (c *Cli) Execute(ctx context.Context) error {
+	return c.rcobra.ExecuteContext(ctx)
+}
+
+func NewCli(cmd Commander, opts ...Option) (CliExector, error) {
 	for _, opt := range opts {
 		opt(globalOpts)
 	}
@@ -50,8 +54,4 @@ func compile(rcmd Commander) (*rcommand, error) {
 	}
 
 	return &rcommand{rcobra: rbuilder.cobraCommand}, nil
-}
-
-func (c *Cli) Execute(ctx context.Context, args []string) error {
-	return c.rcobra.ExecuteContext(ctx)
 }

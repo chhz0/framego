@@ -6,15 +6,14 @@ import (
 )
 
 type RootOption struct {
-	AppName string `mapstructure:"app_name"`
-	Version string `mapstructure:"version"`
+	AppName string `mapstructure:"app_name" yaml:"app_name"`
+	Version string `mapstructure:"version" yaml:"version"`
 }
 
 // LocalFlags implements fgcli.Flager.
-func (r *RootOption) LocalFlags() *fgcli.FlagSet {
-	pfs := pflag.NewFlagSet("root", pflag.ExitOnError)
-	pfs.StringVarP(&r.Version, "version", "v", "v0.0.1", "app version")
-	pfs.StringVarP(&r.AppName, "app", "a", "fg-cli", "app name")
+func (r *RootOption) LocalFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
+	pfs.StringVarP(&r.Version, "version", "v", "", "app version")
+	pfs.StringVarP(&r.AppName, "app_name", "a", "", "app name")
 
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
@@ -23,8 +22,7 @@ func (r *RootOption) LocalFlags() *fgcli.FlagSet {
 }
 
 // PersistentFlags implements fgcli.Flager.
-func (r *RootOption) PersistentFlags() *fgcli.FlagSet {
-	pfs := pflag.NewFlagSet("root", pflag.ExitOnError)
+func (r *RootOption) PersistentFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
 		Required: []string{},
@@ -38,8 +36,7 @@ type PrintOption struct {
 	From  string `mapstructure:"from"`
 }
 
-func (p *PrintOption) LocalFlags() *fgcli.FlagSet {
-	pfs := pflag.NewFlagSet("print", pflag.ExitOnError)
+func (p *PrintOption) LocalFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	pfs.StringVarP(&p.Print, "print", "p", "print", "print")
 	pfs.StringVarP(&p.From, "from", "f", "from", "from")
 
@@ -49,9 +46,9 @@ func (p *PrintOption) LocalFlags() *fgcli.FlagSet {
 	}
 }
 
-func (p *PrintOption) PersistentFlags() *fgcli.FlagSet {
+func (p *PrintOption) PersistentFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	return &fgcli.FlagSet{
-		PFlags:   nil,
+		PFlags:   pfs,
 		Required: []string{},
 	}
 }
@@ -61,11 +58,9 @@ type EchoOption struct {
 	Time TimesOption `mapstructure:"time"`
 }
 
-func (e *EchoOption) LocalFlags() *fgcli.FlagSet {
-	pfs := pflag.NewFlagSet("echo", pflag.ExitOnError)
+func (e *EchoOption) LocalFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	pfs.StringVarP(&e.Echo, "echo", "e", "echo", "echo")
-
-	pfs.AddFlagSet(e.Time.LocalFlags().PFlags)
+	pfs.AddFlagSet(e.Time.LocalFlags(pfs).PFlags)
 
 	return &fgcli.FlagSet{
 		PFlags:   pfs,
@@ -73,9 +68,9 @@ func (e *EchoOption) LocalFlags() *fgcli.FlagSet {
 	}
 }
 
-func (e *EchoOption) PersistentFlags() *fgcli.FlagSet {
+func (e *EchoOption) PersistentFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	return &fgcli.FlagSet{
-		PFlags:   nil,
+		PFlags:   pfs,
 		Required: []string{},
 	}
 }
@@ -84,8 +79,7 @@ type TimesOption struct {
 	Time int `mapstructure:"times"`
 }
 
-func (t *TimesOption) LocalFlags() *fgcli.FlagSet {
-	pfs := pflag.NewFlagSet("times", pflag.ExitOnError)
+func (t *TimesOption) LocalFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	pfs.IntVarP(&t.Time, "times", "t", 5, "times")
 
 	return &fgcli.FlagSet{
@@ -94,9 +88,9 @@ func (t *TimesOption) LocalFlags() *fgcli.FlagSet {
 	}
 }
 
-func (t *TimesOption) PersistentFlags() *fgcli.FlagSet {
+func (t *TimesOption) PersistentFlags(pfs *pflag.FlagSet) *fgcli.FlagSet {
 	return &fgcli.FlagSet{
-		PFlags:   nil,
+		PFlags:   pfs,
 		Required: []string{},
 	}
 }
