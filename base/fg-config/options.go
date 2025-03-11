@@ -23,7 +23,7 @@ type Env struct {
 }
 
 // TODO: 多配置文件来源
-type Local struct {
+type LocalConfig struct {
 	ConfigName  string    // 配置文件名
 	ConfigType  string    // 配置文件类型
 	ConfigPaths []string  // 配置文件路径
@@ -34,8 +34,8 @@ type Options struct {
 	Sets     map[string]any
 	Defaults map[string]any
 
-	Local  *Local
-	DotEnv *Local
+	Config *LocalConfig
+	DotEnv *LocalConfig
 
 	Env *Env
 
@@ -68,7 +68,7 @@ func WithDefaults(defaluts map[string]any) func(*Options) {
 
 func WithDotEnv(mode string, path ...string) func(*Options) {
 	return func(o *Options) {
-		o.DotEnv = &Local{
+		o.DotEnv = &LocalConfig{
 			ConfigName:  mode,
 			ConfigType:  "env",
 			ConfigPaths: path,
@@ -76,27 +76,27 @@ func WithDotEnv(mode string, path ...string) func(*Options) {
 	}
 }
 
-func WithLocal(local *Local) func(*Options) {
+func WithConfig(local *LocalConfig) func(*Options) {
 	return func(o *Options) {
-		o.Local = local
+		o.Config = local
 	}
 }
 
 func WithConfigName(name string) func(*Options) {
 	return func(o *Options) {
-		o.Local.ConfigName = name
+		o.Config.ConfigName = name
 	}
 }
 
 func WithConfigType(configType string) func(*Options) {
 	return func(o *Options) {
-		o.Local.ConfigType = configType
+		o.Config.ConfigType = configType
 	}
 }
 
 func WithConfigPaths(paths ...string) func(*Options) {
 	return func(o *Options) {
-		o.Local.ConfigPaths = append(o.Local.ConfigPaths, paths...)
+		o.Config.ConfigPaths = append(o.Config.ConfigPaths, paths...)
 	}
 }
 

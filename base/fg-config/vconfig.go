@@ -29,7 +29,9 @@ var (
 )
 
 type VConfig struct {
-	v    *viper.Viper
+	v *viper.Viper
+
+	// todo: 支持同时读取多个配置
 	vps  map[string]*viper.Viper
 	opts *Options
 	mu   sync.RWMutex
@@ -38,7 +40,7 @@ type VConfig struct {
 // New 使用 options 模式创建配置实例
 func NewWith(optFuncs ...func(*Options)) *VConfig {
 	defaultOpts := &Options{
-		Local: &Local{
+		Config: &LocalConfig{
 			ConfigName:  "",
 			ConfigPaths: []string{"."},
 		},
@@ -54,7 +56,7 @@ func NewWith(optFuncs ...func(*Options)) *VConfig {
 
 	vc := &VConfig{
 		v:    viper.New(),
-		vps:  make(map[string]*viper.Viper),
+		vps:  make(map[string]*viper.Viper, 0),
 		opts: defaultOpts,
 	}
 
@@ -79,7 +81,7 @@ func New(opts *Options) *VConfig {
 func (vc *VConfig) initialize() {
 	vc.setDefault()
 
-	// 加载 flag 参数
+	// 绑定 flag 参数
 	if vc.opts.EnableFlag {
 		vc.bindFlags()
 	}
@@ -89,27 +91,25 @@ func (vc *VConfig) initialize() {
 		vc.setupEnv()
 	}
 
-	// 加载本地配置文件
-	if err := vc.loadLocal(); err != nil && !errors.Is(err, ErrConfigNotFound) {
-		log.Printf("Warning: Error loading local file: %v", err)
-	}
-
-	if vc.opts.DotEnv != nil {
-		if err := vc.mergeLocal(); err != nil && !errors.Is(err, ErrConfigNotFound) {
-			log.Printf("Warning: Error loading local file: %v", err)
-		}
-	}
-
-	// 加载远程配置文件
-	if vc.opts.EnableRemote {
-		if err := vc.loadRemote(); err != nil {
-			log.Printf("Warning: Error loading remote config: %v", err)
-		}
-	}
-
 	// 加载 key/value 参数
 	for key, val := range vc.opts.Sets {
 		vc.v.Set(key, val)
+	}
+}
+
+func (vc *VConfig) setDefault() {
+	for k, v := range vc.opts.Defaults {
+		vc.v.SetDefault(k, v)
+	}
+}
+
+func (vc *VConfig) bindFlags() {
+	for _, fs := range vc.opts.Flags {
+		fs.VisitAll(func(f *pflag.Flag) {
+			if err := vc.v.BindPFlag(f.Name, f); err != nil {
+				log.Printf("failed to bind flag %s: %v", f.Name, err)
+			}
+		})
 	}
 }
 
@@ -126,47 +126,17 @@ func (vc *VConfig) setupEnv() {
 	if vc.opts.Env.KeyReplacer != nil {
 		vc.v.SetEnvKeyReplacer(vc.opts.Env.KeyReplacer)
 	}
-}
 
-func (vc *VConfig) bindFlags() {
-	for _, fs := range vc.opts.Flags {
-		fs.VisitAll(func(f *pflag.Flag) {
-			if err := vc.v.BindPFlag(f.Name, f); err != nil {
-				log.Printf("failed to bind flag %s: %v", f.Name, err)
-			}
-		})
-	}
-}
+	vc.setInRead("config")
 
-func (vc *VConfig) loadLocal() error {
-	vc.setInRead("local")
-	if err := vc.v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok && vc.opts.Local.ConfigIO != nil {
-			return vc.loadReaderIO()
-		}
-		return fmt.Errorf("config file read error: %v\n", err)
-	}
-
-	return nil
-}
-
-func (vc *VConfig) mergeLocal() error {
-	vc.setInRead("dotenv")
-	if err := vc.v.MergeInConfig(); err != nil {
-		if os.IsNotExist(err) {
-			return ErrDotEnvNotFound
-		}
-		return fmt.Errorf("dotenv file merge error: %v\n", err)
-	}
-	return nil
-}
-
-func (vc *VConfig) mergeFromViper(vp *viper.Viper) error {
-	return vc.v.MergeConfigMap(vp.AllSettings())
+	// todo: 支持 dotenv的读取
+	// if vc.opts.DotEnv != nil {
+	// 	vc.setInRead("dotenv")
+	// }
 }
 
 func (vc *VConfig) setInRead(in string) {
-	use := vc.opts.Local
+	use := vc.opts.Config
 	if in == "dotenv" {
 		use = vc.opts.DotEnv
 	}
@@ -178,8 +148,55 @@ func (vc *VConfig) setInRead(in string) {
 	}
 }
 
+func (vc *VConfig) Load() {
+
+	// 加载本地配置文件
+	if err := vc.loadConfig(); err != nil && !errors.Is(err, ErrConfigNotFound) {
+		log.Printf("Warning: Error loading local file: %v", err)
+	}
+
+	if vc.opts.DotEnv != nil {
+		if err := vc.loadDotEnv(); err != nil && !errors.Is(err, ErrConfigNotFound) {
+			log.Printf("Warning: Error loading local file: %v", err)
+		}
+	}
+
+	// todo: 加载远程配置文件
+	// if vc.opts.EnableRemote {
+	// 	if err := vc.loadRemote(); err != nil {
+	// 		log.Printf("Warning: Error loading remote config: %v", err)
+	// 	}
+	// }
+
+}
+
+func (vc *VConfig) loadConfig() error {
+	if err := vc.v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok && vc.opts.Config.ConfigIO != nil {
+			return vc.loadReaderIO()
+		}
+		return fmt.Errorf("config file read error: %v\n", err)
+	}
+
+	return nil
+}
+
+func (vc *VConfig) loadDotEnv() error {
+	if err := vc.v.MergeInConfig(); err != nil {
+		if os.IsNotExist(err) {
+			return ErrDotEnvNotFound
+		}
+		return fmt.Errorf("dotenv file merge error: %v\n", err)
+	}
+	return nil
+}
+
+// func (vc *VConfig) mergeFromViper(vp *viper.Viper) error {
+// 	return vc.v.MergeConfigMap(vp.AllSettings())
+// }
+
 func (vc *VConfig) loadReaderIO() error {
-	if err := vc.v.ReadConfig(vc.opts.Local.ConfigIO); err != nil {
+	if err := vc.v.ReadConfig(vc.opts.Config.ConfigIO); err != nil {
 		return ErrReaderIO
 	}
 
@@ -279,11 +296,6 @@ func (vc *VConfig) MarshalToString(marshalType string) (string, error) {
 		return "", err
 	}
 	return string(buf), nil
-}
-func (vc *VConfig) setDefault() {
-	for k, v := range vc.opts.Defaults {
-		vc.v.SetDefault(k, v)
-	}
 }
 
 func (vc *VConfig) BindPFlag(mFlag map[string]*pflag.Flag) {

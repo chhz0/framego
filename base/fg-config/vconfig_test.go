@@ -50,7 +50,7 @@ func Test_config(t *testing.T) {
 		// WithConfigType("yaml"),
 		// WithConfigPaths("./config", "."),
 
-		WithLocal(&Local{
+		WithConfig(&LocalConfig{
 			ConfigName:  "config",
 			ConfigType:  "yaml",
 			ConfigPaths: []string{"./config"},
@@ -61,6 +61,7 @@ func Test_config(t *testing.T) {
 		// EnableDotEnv(true),
 		// EnableFlag(flags),
 	)
+	config.Load()
 
 	t.Log("all settings")
 	t.Log(config.MarshalToString("json"))
@@ -85,6 +86,8 @@ func Test_VConfig_Set(t *testing.T) {
 
 	config.Set("set", "vconfig_set_new")
 
+	config.Load()
+
 	t.Log("all settings")
 	t.Log(config.AllSettings())
 }
@@ -105,7 +108,7 @@ func Test_VConfig_Flag(t *testing.T) {
 	config.BindPFlag(map[string]*pflag.Flag{
 		"bind": flags.Lookup("app"),
 	})
-
+	config.Load()
 	t.Log("all settings")
 	t.Log(config.AllSettings())
 }
@@ -121,6 +124,7 @@ func Test_VConfig_Env(t *testing.T) {
 			Prefix: "VCONFIG",
 		}),
 	)
+	config.Load()
 	// config.BindEnvs("app")
 	// config.BindEnvs("server.host")
 	// config.BindEnvs("server.port")
@@ -132,26 +136,26 @@ func Test_VConfig_DotEnv(t *testing.T) {
 	config := NewWith(
 		WithDotEnv("dev", "."),
 	)
-
+	config.Load()
 	t.Log("all settings")
 	t.Log(config.MarshalToString("json"))
 }
 
 func Test_VConfig_Config(t *testing.T) {
 	config := NewWith(
-		WithLocal(&Local{
+		WithConfig(&LocalConfig{
 			ConfigName:  "config",
 			ConfigType:  "yaml",
 			ConfigPaths: []string{"./config"},
 		}),
 	)
-
+	config.Load()
 	t.Log("all settings")
 	t.Log(config.MarshalToString("json"))
 }
 
 func Test_VConfig_Remote(t *testing.T) {
-	// TODO: to be done
+	// TODO: to do
 }
 
 func Test_VConfig_Default(t *testing.T) {
@@ -164,10 +168,11 @@ func Test_VConfig_Default(t *testing.T) {
 			},
 		}),
 	)
+	config.Load()
 	t.Log("all settings")
 	t.Log(config.MarshalToString("json"))
 }
 
 func Test_VConfig_KeyValue(t *testing.T) {
-	// TODO: to be done
+	// TODO: to do
 }
