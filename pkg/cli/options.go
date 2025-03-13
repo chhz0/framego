@@ -1,7 +1,8 @@
-package fgcli
+package cli
 
 import "github.com/spf13/viper"
 
+// todo: 优化全局的配置
 var globalOpts = &CommandOpts{}
 
 type CommandOpts struct {

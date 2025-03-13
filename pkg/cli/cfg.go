@@ -1,4 +1,4 @@
-package fgcli
+package cli
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultDir        = ".fgcli"
+	defaultDir        = ".cli"
 	defaultConfigFile = "config.yaml"
 )
 

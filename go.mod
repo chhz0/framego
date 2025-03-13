@@ -1,4 +1,4 @@
-module github.com/chhz0/framego
+module github.com/chhz0/gokit
 
 go 1.23.6
 

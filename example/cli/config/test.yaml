@@ -1,4 +1,4 @@
-app_name: fgcli-test
+app_name: cli-test
 version: v9.9.9
 
 print: print-test

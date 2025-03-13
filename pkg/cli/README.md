@@ -10,7 +10,7 @@ fg-cli 是一个用以快速构建命令行应用程序的包，在设计上主�
 - 配置文件解析 √
 
 ## Example
-查看本项目的[example/fg-cli](https://github.com/chhz0/framego/tree/main/example/fg-cli)
+查看本项目的[example/fg-cli](https://github.com/chhz0/gokit/tree/main/example/fg-cli)
 
 ## Optimization
 

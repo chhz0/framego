@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	fgcli "github.com/chhz0/framego/base/fg-cli"
-	fgconfig "github.com/chhz0/framego/base/fg-config"
+	"github.com/chhz0/gokit"
+	"github.com/chhz0/gokit/pkg/cli"
+	"github.com/chhz0/gokit/pkg/config"
 )
 
-func newPrintCmd() *fgcli.SimpleCommand {
+func newPrintCmd() *cli.SimpleCommand {
 	opt := &PrintOption{}
-	return &fgcli.SimpleCommand{
+	return &cli.SimpleCommand{
 		CmdName:  "print",
 		CmdShort: "Print anything to the screen",
 		CmdLong: `print is for printing anything back to the screen.
@@ -24,9 +25,9 @@ For many years people have printed back to the screen.`,
 		Flager: opt,
 	}
 }
-func newEchoCmd() *fgcli.SimpleCommand {
+func newEchoCmd() *cli.SimpleCommand {
 	opt := &EchoOption{}
-	return &fgcli.SimpleCommand{
+	return &cli.SimpleCommand{
 		CmdName:  "echo",
 		CmdShort: "Echo anything to the screen",
 		CmdLong: `echo is for echoing anything back.
@@ -37,15 +38,15 @@ Echo works a lot like print, except it has a child command.`,
 			return nil
 		},
 		Flager: opt,
-		Commanders: []fgcli.Commander{
+		Commanders: []cli.Commander{
 			newTimeCmd(),
 		},
 	}
 }
 
-func newTimeCmd() *fgcli.SimpleCommand {
+func newTimeCmd() *cli.SimpleCommand {
 	opt := &TimesOption{}
-	return &fgcli.SimpleCommand{
+	return &cli.SimpleCommand{
 		Usage:    "times [# times] [string to echo]",
 		CmdShort: "Echo anything to the screen more times",
 		CmdLong: `echo things multiple times back to the user by providing
@@ -60,9 +61,9 @@ a count and a string.`,
 	}
 }
 
-func testfgConfig() *fgconfig.VConfig {
-	vc := fgconfig.NewWith(
-		fgconfig.WithConfig(&fgconfig.LocalConfig{
+func testfgConfig() *config.VConfig {
+	vc := config.NewWith(
+		config.WithConfig(&config.LocalConfig{
 			ConfigName:  "test",
 			ConfigType:  "yaml",
 			ConfigPaths: []string{"./config"},
@@ -74,31 +75,32 @@ func testfgConfig() *fgconfig.VConfig {
 func main() {
 	v := testfgConfig()
 	opt := &RootOption{}
-	cli, err := fgcli.NewCli(&fgcli.SimpleCommand{
-		CmdName:  "fgcli",
-		CmdShort: "create cli application",
-		CmdLong:  "fg-cli is quickly create command line application's framework",
-		PreRunFunc: func(ctx context.Context, args []string) error {
-			fmt.Println("fg-cli pre run ...")
-			return nil
+	cli, err := gokit.NewCli(
+		&cli.SimpleCommand{
+			CmdName:  "gkcli",
+			CmdShort: "create cli application",
+			CmdLong:  "gk-cli is quickly create command line application's framework",
+			PreRunFunc: func(ctx context.Context, args []string) error {
+				fmt.Println("gk-cli pre run ...")
+				return nil
+			},
+			RunFunc: func(ctx context.Context, args []string) error {
+				fmt.Println("gk-cli run ...")
+				fmt.Printf("gk-cli options: %v\n", opt)
+				return nil
+			},
+			Flager: opt,
+			Commanders: []cli.Commander{
+				newPrintCmd(),
+				newEchoCmd(),
+			},
 		},
-		RunFunc: func(ctx context.Context, args []string) error {
-			fmt.Println("fg-cli run ...")
-			fmt.Printf("fg-cli options: %v\n", opt)
-			return nil
-		},
-		Flager: opt,
-		Commanders: []fgcli.Commander{
-			newPrintCmd(),
-			newEchoCmd(),
-		},
-	},
-		// --- use fgcli config
-		// fgcli.EnableConfig(nil),
-		// fgcli.SetCfgFile("./config/confg.yaml"),
+		// --- use cli config
+		// cli.EnableConfig(nil),
+		// cli.SetCfgFile("./config/confg.yaml"),
 		// --- test fgconfig
-		fgcli.EnableConfig(v.V()),
-		fgcli.SetConfigHandler(v.Load),
+		cli.EnableConfig(v.V()),
+		cli.SetConfigHandler(v.Load),
 	)
 	if err != nil {
 		panic(err)

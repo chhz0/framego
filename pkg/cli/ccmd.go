@@ -1,4 +1,4 @@
-package fgcli
+package cli
 
 import (
 	"context"

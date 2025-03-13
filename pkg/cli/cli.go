@@ -1,4 +1,4 @@
-package fgcli
+package cli
 
 import (
 	"context"
@@ -16,7 +16,7 @@ func (c *Cli) Execute(ctx context.Context) error {
 	return c.rcobra.ExecuteContext(ctx)
 }
 
-func NewCli(cmd Commander, opts ...Option) (CliExector, error) {
+func New(cmd Commander, opts ...Option) (CliExector, error) {
 	for _, opt := range opts {
 		opt(globalOpts)
 	}

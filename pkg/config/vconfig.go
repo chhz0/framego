@@ -1,4 +1,4 @@
-package fgconfig
+package config
 
 import (
 	"context"

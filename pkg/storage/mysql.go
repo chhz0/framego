@@ -1,4 +1,4 @@
-package fgstorage
+package storage
 
 import (
 	"fmt"
