@@ -1,4 +1,4 @@
-# gokit
+# gokit(Beta)
 gokit provides a set of tools for quickly building services
 
 ## Install
