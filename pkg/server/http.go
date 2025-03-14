@@ -18,6 +18,18 @@ type HttpConfig struct {
 	TLS          *TLSConfig
 }
 
+func (hc *HttpConfig) check() {
+	if hc.Addr == "" {
+		hc.Addr = ":8080"
+	}
+	if hc.ReadTimeout == 0 {
+		hc.ReadTimeout = 5 * time.Second
+	}
+	if hc.WriteTimeout == 0 {
+		hc.WriteTimeout = 10 * time.Second
+	}
+}
+
 type TLSConfig struct {
 	Cert string
 	Key  string
@@ -31,7 +43,8 @@ type httpServer struct {
 // Listen implements Server.
 func (hs *httpServer) ListenAndServe() error {
 	if hs.cfg.TLS != nil {
-		if err := hs.server.ListenAndServeTLS(hs.cfg.TLS.Cert, hs.cfg.TLS.Key); err != nil && err != http.ErrServerClosed {
+		if err := hs.server.ListenAndServeTLS(hs.cfg.TLS.Cert, hs.cfg.TLS.Key); err != nil &&
+			err != http.ErrServerClosed {
 			return err
 		}
 	} else {
@@ -62,6 +75,7 @@ func (hs *httpServer) wait() error {
 }
 
 func NewHttp(cfg *HttpConfig, engine engines.Handler) Server {
+	cfg.check()
 	return &httpServer{
 		cfg: cfg,
 		server: &http.Server{
