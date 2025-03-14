@@ -158,7 +158,6 @@ func (c *SimpleCommand) PreRun(ctx context.Context, args []string) error {
 
 func (c *SimpleCommand) Run(ctx context.Context, args []string) error {
 	if globalOpts.enableConfig || globalOpts.configFile != "" {
-		printConfig()
 		if err := vc.v.Unmarshal(c.Flager); err != nil {
 			return err
 		}

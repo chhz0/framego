@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// todo: 支持灵活的Flag设置
 type Flager interface {
 	PersistentFlags(fs *pflag.FlagSet) *FlagSet
 	LocalFlags(fs *pflag.FlagSet) *FlagSet
@@ -36,4 +37,9 @@ func applyPeristent(cmd *cobra.Command, fs *FlagSet) {
 	for _, rflag := range fs.Required {
 		_ = cmd.MarkPersistentFlagRequired(rflag)
 	}
+}
+
+type SimpleFlag struct {
+	Local       func(fs *pflag.FlagSet)
+	Perisistent func(fs *pflag.FlagSet)
 }
