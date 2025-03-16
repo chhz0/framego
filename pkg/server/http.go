@@ -42,15 +42,23 @@ type httpServer struct {
 
 // Listen implements Server.
 func (hs *httpServer) ListenAndServe() error {
-	if hs.cfg.TLS != nil {
-		if err := hs.server.ListenAndServeTLS(hs.cfg.TLS.Cert, hs.cfg.TLS.Key); err != nil &&
-			err != http.ErrServerClosed {
-			return err
+	errChan := make(chan error, 1)
+	defer close(errChan)
+	go func(errChan chan error) {
+		if hs.cfg.TLS != nil {
+			if err := hs.server.ListenAndServeTLS(hs.cfg.TLS.Cert, hs.cfg.TLS.Key); err != nil &&
+				err != http.ErrServerClosed {
+				errChan <- err
+			}
+		} else {
+			if err := hs.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				errChan <- err
+			}
 		}
-	} else {
-		if err := hs.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			return err
-		}
+	}(errChan)
+
+	if err := <-errChan; err != nil {
+		return err
 	}
 
 	return hs.wait()
